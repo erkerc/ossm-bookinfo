@@ -73,7 +73,7 @@ objects:
             vm.kubevirt.io/flavor: small
             vm.kubevirt.io/os: fedora
             vm.kubevirt.io/workload: server
-            sidecar.istio.io/inject: "false"
+            sidecar.istio.io/inject: '${ISTIO_INJECT}'
           labels:
             flavor.template.kubevirt.io/small: 'true'
             kubevirt.io/domain: ratings-${APPLICATION_VERSION}
@@ -142,6 +142,11 @@ parameters:
   displayName: ratings version
   name: APPLICATION_VERSION
   value: v2
+  required: true
+- description: Istio Proxy inject enabled 
+  displayName: Istio Proxy inject enabled 
+  name: ISTIO_INJECT
+  value: 'true'
   required: true
 - description: Virtual Machine Username
   displayName: Virtual Machine Username

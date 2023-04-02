@@ -57,6 +57,7 @@ metadata:
   labels:
     app: details
     version: v1
+    app.kubernetes.io/part-of: bookinfo
 spec:
   replicas: 1
   selector:
@@ -110,6 +111,7 @@ metadata:
   labels:
     app: ratings
     version: v1
+    app.kubernetes.io/part-of: bookinfo
 spec:
   replicas: 1
   selector:
@@ -163,6 +165,7 @@ metadata:
   labels:
     app: reviews
     version: v1
+    app.kubernetes.io/part-of: bookinfo
 spec:
   replicas: 1
   selector:
@@ -205,6 +208,7 @@ metadata:
   labels:
     app: reviews
     version: v2
+    app.kubernetes.io/part-of: bookinfo
 spec:
   replicas: 1
   selector:
@@ -247,6 +251,7 @@ metadata:
   labels:
     app: reviews
     version: v3
+    app.kubernetes.io/part-of: bookinfo
 spec:
   replicas: 1
   selector:
@@ -313,6 +318,7 @@ metadata:
   labels:
     app: productpage
     version: v1
+    app.kubernetes.io/part-of: bookinfo
 spec:
   replicas: 1
   selector:
