@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 labels:
-  app: ratings-vm
+  app: bookinfo-ratings-vm
 metadata:
   annotations:
     name.os.template.kubevirt.io/fedora: Fedora 35 or higher
@@ -16,8 +16,6 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-      annotations:
-        sidecar.istio.io/inject: "true"
       labels:
         app: ratings
         version: ${APPLICATION_VERSION}
@@ -75,6 +73,7 @@ objects:
             vm.kubevirt.io/flavor: small
             vm.kubevirt.io/os: fedora
             vm.kubevirt.io/workload: server
+            sidecar.istio.io/inject: "false"
           labels:
             flavor.template.kubevirt.io/small: 'true'
             kubevirt.io/domain: ratings-${APPLICATION_VERSION}
@@ -82,6 +81,8 @@ objects:
             os.template.kubevirt.io/fedora: 'true'
             vm.kubevirt.io/name: ratings-${APPLICATION_VERSION}
             workload.template.kubevirt.io/server: 'true'
+            app: ratings
+            version: ${APPLICATION_VERSION}
         spec:
           domain:
             cpu:
@@ -124,8 +125,11 @@ objects:
                 user: ${VM_USER_NAME}
                 password: ${VM_PASSWORD}
                 chpasswd: { expire: False }
+                ssh_authorized_keys: 
+                  - ${SSH_AUTHORIZED_KEYS}
                 runcmd:
                   - sudo dnf -y install git nodejs
+                  - cd /home/redhat
                   - git clone https://github.com/erkerc/ossm-bookinfo.git
                   - cd ossm-bookinfo/src/ratings-vm/
                   - sudo npm install
@@ -148,6 +152,10 @@ parameters:
   name: VM_PASSWORD
   value: openshift
   required: true
+- description: SSH Authorized Keys
+  displayName: SSH Authorized Keys
+  name: SSH_AUTHORIZED_KEYS
+  required: false
 - description: Virtual Machine DataSource name 
   name: DATASOURCE_NAME
   value: fedora
