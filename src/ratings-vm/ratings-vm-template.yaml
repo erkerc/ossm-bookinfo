@@ -4,7 +4,7 @@ labels:
   app: ratings-vm
 metadata:
   annotations:
-    name.os.template.kubevirt.io/centos8: CentOS 8 or higher
+    name.os.template.kubevirt.io/fedora: Fedora 35 or higher
     openshift.io/display-name: ratings Virtual Machine Template
     openshift.io/long-description: This template provides a standalone Virtual Machine with a nodejs application [ratings] created. 
     openshift.io/provider-display-name: Red Hat Turkey Solution Architect Team
@@ -35,7 +35,7 @@ objects:
     kind: VirtualMachine
     metadata:
       annotations:
-        name.os.template.kubevirt.io/centos8: CentOS 8 or higher
+        name.os.template.kubevirt.io/fedora: Fedora 35or higher
         openshift.io/display-name: ratings Virtual Machine 
       labels:
         app: ratings
@@ -43,7 +43,7 @@ objects:
         version: ${APPLICATION_VERSION}   
         app.kubernetes.io/part-of: bookinfo
         flavor.template.kubevirt.io/small: 'true'
-        os.template.kubevirt.io/centos8: 'true'
+        os.template.kubevirt.io/fedora: 'true'
         kubevirt.io/domain: ratings-${APPLICATION_VERSION}
         kubevirt.io/size: small
         workload.template.kubevirt.io/server: 'true'
@@ -62,24 +62,22 @@ objects:
             resources:
               requests:
                 storage: 30Gi
-            storageClassName: ocs-storagecluster-ceph-rbd
-            volumeMode: Block
-          source:
-            pvc:
-              name: ${PVC_NAME}
-              namespace: ${PVC_NAMESPACE}
+          sourceRef:
+            kind: DataSource
+            name: ${DATASOURCE_NAME}
+            namespace: ${DATASOURCE_NAMESPACE}
       running: true
       template:
         metadata:
           annotations:
             vm.kubevirt.io/flavor: small
-            vm.kubevirt.io/os: centos8
+            vm.kubevirt.io/os: fedora
             vm.kubevirt.io/workload: server
           labels:
             flavor.template.kubevirt.io/small: 'true'
             kubevirt.io/domain: ratings-${APPLICATION_VERSION}
             kubevirt.io/size: small
-            os.template.kubevirt.io/centos8: 'true'
+            os.template.kubevirt.io/fedora: 'true'
             vm.kubevirt.io/name: ratings-${APPLICATION_VERSION}
             workload.template.kubevirt.io/server: 'true'
         spec:
@@ -147,11 +145,11 @@ parameters:
   name: VM_PASSWORD
   value: openshift
   required: true
-- description: Virtual Machine PVC name 
-  name: PVC_NAME
-  value: centos-stream8-8075e1f17100
+- description: Virtual Machine DataSource name 
+  name: DATASOURCE_NAME
+  value: fedora
   required: true
-- description: Virtual Machine PVC namespace 
-  name: PVC_NAMESPACE
+- description: Virtual Machine DataSource namespace 
+  name: ${DATASOURCE_NAMESPACE}
   value: openshift-virtualization-os-images
   required: true
