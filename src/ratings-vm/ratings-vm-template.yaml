@@ -1,0 +1,157 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: ratings-vm
+metadata:
+  annotations:
+    name.os.template.kubevirt.io/centos8: CentOS 8 or higher
+    openshift.io/display-name: ratings Virtual Machine Template
+    openshift.io/long-description: This template provides a standalone Virtual Machine with a nodejs application [ratings] created. 
+    openshift.io/provider-display-name: Red Hat Turkey Solution Architect Team
+    iconClass: icon-nodejs
+    tags: 'ratings'
+  name: ratings-vm-template
+  namespace: openshift
+objects:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        app: ratings
+        version: ${APPLICATION_VERSION}
+      name: ratings-${APPLICATION_VERSION}
+    spec:
+      ports:
+        - name: http
+          port: 9080
+      selector:
+        app: ratings
+        version: ${APPLICATION_VERSION}
+      sessionAffinity: None
+      type: ClusterIP
+  - apiVersion: kubevirt.io/v1alpha3
+    kind: VirtualMachine
+    metadata:
+      annotations:
+        name.os.template.kubevirt.io/centos8: CentOS 8 or higher
+        openshift.io/display-name: ratings Virtual Machine 
+      labels:
+        app: ratings
+        app.openshift.io/runtime: nodejs
+        version: ${APPLICATION_VERSION}   
+        app.kubernetes.io/part-of: bookinfo
+        flavor.template.kubevirt.io/small: 'true'
+        os.template.kubevirt.io/centos8: 'true'
+        kubevirt.io/domain: ratings-${APPLICATION_VERSION}
+        kubevirt.io/size: small
+        workload.template.kubevirt.io/server: 'true'
+        vm.kubevirt.io/name: ratings-${APPLICATION_VERSION}
+      name: ratings-${APPLICATION_VERSION}
+    spec:
+      dataVolumeTemplates:
+      - apiVersion: cdi.kubevirt.io/v1alpha1
+        kind: DataVolume
+        metadata:
+          name: ratings-${APPLICATION_VERSION}-rootdisk
+        spec:
+          pvc:
+            accessModes:
+            - ReadWriteMany
+            resources:
+              requests:
+                storage: 30Gi
+            storageClassName: ocs-storagecluster-ceph-rbd
+            volumeMode: Block
+          source:
+            pvc:
+              name: ${PVC_NAME}
+              namespace: ${PVC_NAMESPACE}
+      running: true
+      template:
+        metadata:
+          annotations:
+            vm.kubevirt.io/flavor: small
+            vm.kubevirt.io/os: centos8
+            vm.kubevirt.io/workload: server
+          labels:
+            flavor.template.kubevirt.io/small: 'true'
+            kubevirt.io/domain: ratings-${APPLICATION_VERSION}
+            kubevirt.io/size: small
+            os.template.kubevirt.io/centos8: 'true'
+            vm.kubevirt.io/name: ratings-${APPLICATION_VERSION}
+            workload.template.kubevirt.io/server: 'true'
+        spec:
+          domain:
+            cpu:
+              cores: 1
+              sockets: 1
+              threads: 1
+            devices:
+              disks:
+              - bootOrder: 1
+                disk:
+                  bus: virtio
+                name: ratings-${APPLICATION_VERSION}-rootdisk
+              - disk:
+                  bus: virtio
+                name: cloudinitdisk
+              interfaces:
+              - masquerade: {}
+                model: virtio
+                name: nic-0
+              networkInterfaceMultiqueue: true
+              rng: {}
+            machine:
+              type: pc-q35-rhel8.4.0
+            resources:
+              requests:
+                memory: 2Gi
+          evictionStrategy: LiveMigrate
+          hostname: ratings-${APPLICATION_VERSION}
+          networks:
+          - name: nic-0
+            pod: {}
+          terminationGracePeriodSeconds: 180
+          volumes:
+          - dataVolume: 
+              name: ratings-${APPLICATION_VERSION}-rootdisk 
+            name: ratings-${APPLICATION_VERSION}-rootdisk 
+          - cloudInitNoCloud:
+              userData: |-
+                #cloud-config
+                user: ${VM_USER_NAME}
+                password: ${VM_PASSWORD}
+                chpasswd: { expire: False }
+                runcmd:
+                  - sudo dnf -y install git nodejs
+                  - git clone https://github.com/erkerc/ossm-bookinfo.git
+                  - cd /home/fedora/ossm-bookinfo/src/ratings-vm/
+                  - sudo npm install
+                  - systemctl daemon-reload
+                  - systemctl enable --now ratings.service
+            name: cloudinitdisk
+parameters:
+- description: The version of the ratings application.
+  displayName: ratings version
+  name: APPLICATION_VERSION
+  value: v2
+  required: true
+- description: Virtual Machine Username
+  displayName: Virtual Machine Username
+  name: VM_USER_NAME
+  required: true
+  value: redhat
+- description: Virtual Machine User Password 
+  name: VM_PASSWORD
+  value: openshift
+  required: true
+- description: Virtual Machine PVC name 
+  name: PVC_NAME
+  value: centos-stream8-8075e1f17100
+  required: true
+- description: Virtual Machine PVC namespace 
+  name: PVC_NAMESPACE
+  value: openshift-virtualization-os-images
+  required: true

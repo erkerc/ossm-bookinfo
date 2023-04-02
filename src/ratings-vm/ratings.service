@@ -1,0 +1,9 @@
+[Unit]
+Description=Run NodeJS App Reviews
+
+[Service]
+ExecStart=/usr/bin/node /home/fedora/ossm-bookinfo/src/ratings-vm/ratings-vm.js 9080
+
+[Install]
+WantedBy=multi-user.target
+END
