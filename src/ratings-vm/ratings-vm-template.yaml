@@ -62,6 +62,8 @@ objects:
             resources:
               requests:
                 storage: 30Gi
+            storageClassName: ocs-storagecluster-ceph-rbd
+            volumeMode: Block
           sourceRef:
             kind: DataSource
             name: ${DATASOURCE_NAME}
@@ -125,10 +127,11 @@ objects:
                 runcmd:
                   - sudo dnf -y install git nodejs
                   - git clone https://github.com/erkerc/ossm-bookinfo.git
-                  - cd /home/fedora/ossm-bookinfo/src/ratings-vm/
+                  - cd ossm-bookinfo/src/ratings-vm/
                   - sudo npm install
-                  - systemctl daemon-reload
-                  - systemctl enable --now ratings.service
+                  - sudo cp ratings.service /etc/systemd/system
+                  - sudo systemctl daemon-reload
+                  - sudo systemctl enable --now ratings.service
             name: cloudinitdisk
 parameters:
 - description: The version of the ratings application.
