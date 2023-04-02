@@ -150,6 +150,6 @@ parameters:
   value: fedora
   required: true
 - description: Virtual Machine DataSource namespace 
-  name: ${DATASOURCE_NAMESPACE}
+  name: DATASOURCE_NAMESPACE
   value: openshift-virtualization-os-images
   required: true
